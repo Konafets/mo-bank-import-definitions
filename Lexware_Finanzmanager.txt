@@ -1,0 +1,79 @@
+' ---------------------------------------------------------------------------------
+' Importdefinition für Lexware Finanzmanager (vormals Quicken) QIF-Umsatzdateien
+' Auslieferung: Version 14.2.0
+'    Importeinstellungen:
+'    Quelle                     : Textdatei (Quicken QIF)
+'    Zeichensatz für            : IsoLatin1 (Windows)
+' ---------------------------------------------------------------------------------
+
+' Aktionen nur im ersten Durchlauf ausführen: Variablen deklarieren
+if ( NOT HasConstant("SEP") )
+    const SEP     as text = "."
+    dim tag       as text
+    dim monat     as text
+    dim jahr      as text
+    dim bemerkung as text
+    dim vwz       as text
+    dim ref       as text
+endif
+
+' Abbrechen, wenn nicht mindestens 5 Felder in Importdatei vorhanden sind
+if ( NOT HasVariable("Spalte_005") )
+    beep
+    msgBox("Fehler beim Lesen der QIF-Exportatei (Ungültiges Datensatzformat)!")
+    set Vorlage_Import_OK to FALSE
+    exit
+endif
+
+' ---------------------------------------------------------------------------------
+' Importfelder den Datenfeldern zuordnen
+' ---------------------------------------------------------------------------------
+
+set jahr to NthField(Spalte_001, SEP, 3)
+
+' Datum im Format Tag.Monat.Jahr
+set tag to NthField(Spalte_001, SEP, 2)
+set monat to NthField(Spalte_001, SEP, 1)
+
+set jahr to "20" + jahr
+set Vorlage_Datum to Date(TextToNumber(tag), TextToNumber(monat), TextToNumber(jahr))
+
+set bemerkung to ReplaceAll(Spalte_003, "                ", "; ")
+set vwz to NthField(bemerkung, ";", 2)
+set ref to NthField(bemerkung, ";", 1)
+
+' Text
+if (Spalte_004 <> "")
+    set Vorlage_Text to ReplaceAll(Spalte_004, "  ", "")
+else
+    set Vorlage_Text to ref
+endif
+
+if ( vwz <> "" )
+    set Vorlage_Text to IfThen(Vorlage_Text = "", vwz, Vorlage_Text + ": " + ReplaceAll(vwz,"  ", ""))
+endif
+
+' Betrag
+set Vorlage_Betrag to TextToNumber(Replace(Spalte_002, ",", ""))
+
+' Gegenkonto
+if ( Spalte_005 <> "" )
+    set Vorlage_Notizen to Spalte_005
+endif
+
+' Empfänger/Sender
+if ( ref <> "" )
+    set Vorlage_Notizen to ReplaceAll(ref, "     ", "")
+endif
+
+' Nummernkreis
+set Vorlage_Nummernkreis to "Standard"
+
+' ---------------------------------------------------------------------------------
+' Optional: Belegvervollständigung
+' ---------------------------------------------------------------------------------
+
+' Debitoren-/Kreditorenkonto bei gefundenem OP zuweisen
+set Vorlage_Konto to GetKontoDebitor(Vorlage_Text, Vorlage_Betrag)
+set Vorlage_Konto to IfThen(Vorlage_Konto = "", GetKontoKreditor(Vorlage_Text, Vorlage_Betrag), Vorlage_Konto)
+

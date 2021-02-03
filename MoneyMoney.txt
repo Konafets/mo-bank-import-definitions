@@ -1,0 +1,64 @@
+' ---------------------------------------------------------------------------------
+' Importdefinition für MoneyMoney-Umsatzdateien
+' Auslieferung: Version 14.2.0
+'    Importeinstellungen:
+'    Quelle                     : Textdatei (*)
+'    Trennzeichen für Felder    : Semikolon
+'    Trennzeichen für Datensätze: LF
+'    Zeichensatz für            : UTF8
+'    Text in Anführungszeichen  : Keine
+' ---------------------------------------------------------------------------------
+
+' Aktionen nur im ersten Durchlauf ausführen: Variablen deklarieren
+if ( NOT HasVariable("zeile") )
+    dim zeile as number
+endif
+
+' Die Umsatzdaten beginnen erst ab Zeile 2, die Zeile davor verwerfen
+set zeile to zeile + 1
+if ( zeile < 2 )
+    set Vorlage_Zeile_OK to FALSE
+    exit
+endif
+
+' Abbrechen, wenn nicht mindestens 9 Felder in Importdatei vorhanden sind
+if ( NOT HasVariable("Spalte_009") )
+    beep
+    msgBox("Fehler beim Lesen der MoneyMoney-Exportatei (Ungültiges Datensatzformat)!")
+    set Vorlage_Import_OK to FALSE
+    exit
+endif
+
+' ---------------------------------------------------------------------------------
+' Importfelder den Datenfeldern zuordnen
+' ---------------------------------------------------------------------------------
+
+' Datum (Wertstellungdatum verwenden)
+set Vorlage_Datum to TextToDate(Spalte_002)
+
+' Text
+if ( Spalte_004 <> "" )
+    set Vorlage_Text to Spalte_004
+endif
+
+if ( Spalte_005 <> "" )
+    set Vorlage_Text to IfThen(Vorlage_Text = "", Spalte_005, Vorlage_Text + ": " + Spalte_005)
+endif
+
+' Betrag
+set Vorlage_Betrag to FTextToNumber(Spalte_008)
+
+' Notizen
+set Vorlage_Notizen to Spalte_003
+
+' Nummernkreis
+set Vorlage_Nummernkreis to "Standard"
+
+' ---------------------------------------------------------------------------------
+' Optional: Belegvervollständigung
+' ---------------------------------------------------------------------------------
+
+' Debitoren-/Kreditorenkonto bei gefundenem OP zuweisen
+set Vorlage_Konto to GetKontoDebitor(Vorlage_Text, Vorlage_Betrag)
+set Vorlage_Konto to IfThen(Vorlage_Konto = "", GetKontoKreditor(Vorlage_Text, Vorlage_Betrag), Vorlage_Konto)
+

@@ -1,0 +1,87 @@
+' ---------------------------------------------------------------------------------
+' Importdefinition für MacGiro 9 - Umsatzdateien
+' Auslieferung: Version 14.2.0
+'    Importeinstellungen:
+'    Quelle                     : Textdatei (*)
+'    Trennzeichen für Felder    : Tab
+'    Trennzeichen für Datensätze: CR
+'    Zeichensatz für            : Mac OS X
+'    Text in Anführungszeichen  : Keine
+' ---------------------------------------------------------------------------------
+
+' Aktionen nur im ersten Durchlauf ausführen: Variablen deklarieren
+if ( NOT HasVariable("valid") )
+    dim valid as boolean
+    dim zeile as number
+    dim vz as number
+    dim art as text
+endif
+
+set zeile to zeile + 1
+
+' Abbrechen, wenn nicht mindestens 40 Felder in Importdatei vorhanden sind
+if ( NOT HasVariable("Spalte_040") )
+    beep
+    msgBox("Fehler beim Lesen der MacGiro-Exportdatei (Ungültiges Datensatzformat)!")
+    set Vorlage_Import_OK to FALSE
+    exit
+endif
+
+' Saldenzeilen vom Import ausschliessen
+if ( Spalte_001 = "Saldo" )
+    set Vorlage_Zeile_OK to FALSE
+    exit
+endif
+
+' Vorzeichen des Buchungsbetrags ermitteln
+set art to Spalte_001
+'msgbox(Spalte_001)
+set vz to IfThen(art = "2" or art = "Überweisung" or art = "Ueberweisung", -1, vz)
+set vz to IfThen(art = "3" or art = "Lastschrift", 1, vz)
+set vz to IfThen(art = "4" or art = "Scheck", -1, vz)
+set vz to IfThen(art = "5" or art = "Scheckannahme", 1, vz)
+set vz to IfThen(art = "6" or art = "Sonstige Buchung", 1, vz)
+set vz to IfThen(art = "7" or art = "Zahlungseingang", 1, vz)
+set vz to IfThen(art = "8" or art = "Abbuchung", -1, vz)
+set vz to IfThen(art = "9" or art = "SEPA-Überweisung" or art = "EU/SEPA-Überweisung", -1, vz)
+set vz to IfThen(art = "10" or art = "Auslandsüberweisung" or art = "Auslandsüberweisung", -1, vz)
+set vz to IfThen(art = "11" or art = "SEPA-Lastschrift", 1, vz)
+set vz to IfThen(art = "16" or art = "Sammler", 1, vz)
+set vz to IfThen(art = "17" or art = "Ordner", 1, vz)
+
+set valid to ( vz <> 0 )
+
+if ( NOT valid )
+    beep
+    msgBox("Fehler beim Lesen der MacGiro-Exportdatei. Die Buchungsart konnte nicht erkannt werden!" + Chr(13) + "Zeile: " + NumToText(zeile))
+    exit
+endif
+
+' ---------------------------------------------------------------------------------
+' Importfelder den Datenfeldern zuordnen
+' ---------------------------------------------------------------------------------
+
+' Datum
+set Vorlage_Datum to TextToDate(Spalte_020)
+
+' Text
+set Vorlage_Text to Spalte_012
+set Vorlage_Text to IfThen(Spalte_011 <> "", Vorlage_Text + " / " + Spalte_011, Vorlage_Text)
+
+' Betrag (Vorzeichen umwandeln)
+set Vorlage_Betrag to FTextToNumber(Spalte_039) * vz
+
+' Notizen
+set Vorlage_Notizen to Spalte_030
+set Vorlage_Notizen to IfThen(Spalte_029 <> "", Vorlage_Notizen + " / " + Spalte_029, Vorlage_Notizen)
+
+' Nummernkreis
+set Vorlage_Nummernkreis to "Standard"
+
+' ---------------------------------------------------------------------------------
+' Optional: Belegvervollständigung
+' ---------------------------------------------------------------------------------
+
+' Debitoren-/Kreditorenkonto bei gefundenem OP zuweisen
+set Vorlage_Konto to GetKontoDebitor(Vorlage_Text, Vorlage_Betrag)
+set Vorlage_Konto to IfThen(Vorlage_Konto = "", GetKontoKreditor(Vorlage_Text, Vorlage_Betrag), Vorlage_Konto)

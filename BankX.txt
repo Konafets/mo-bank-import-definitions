@@ -1,0 +1,81 @@
+' ---------------------------------------------------------------------------------
+' Importdefinition für Bank X (Version 7)-Umsatzdateien
+' Auslieferung: Version 14.2.0
+'    Importeinstellungen:
+'    Quelle                     : Textdatei (*)
+'    Trennzeichen für Felder    : Tab
+'    Trennzeichen für Datensätze: CR
+'    Zeichensatz für            : UTF8
+'    Text in Anführungszeichen  : Keine
+' ---------------------------------------------------------------------------------
+
+' Aktionen nur im ersten Durchlauf ausführen: Variablen deklarieren
+if ( NOT HasVariable("valid") )
+    dim valid as boolean
+    dim vz as number
+endif
+
+' Abbrechen, wenn nicht mindestens 15 Felder in Importdatei vorhanden sind
+if ( NOT HasVariable("Spalte_015") )
+    beep
+    msgBox("Fehler beim Lesen der Bank X-Exportdatei (Ungültiges Datensatzformat)!")
+    set Vorlage_Import_OK to FALSE
+    exit
+endif
+
+' Vorzeichen des Buchungsbetrags ermitteln
+if ( Spalte_001 = BANKKONTO_BEZEICHNUNG AND Spalte_002 <> BANKKONTO_BEZEICHNUNG )
+    set vz to -1
+    set valid to TRUE
+elseif ( Spalte_002 = BANKKONTO_BEZEICHNUNG AND Spalte_001 <> BANKKONTO_BEZEICHNUNG )
+    set vz to 1
+    set valid to TRUE
+endif
+
+if ( NOT valid )
+    beep
+    msgBox("Fehler beim Lesen der Bank X-Datei (Das Bankkonto '" + BANKKONTO_BEZEICHNUNG + "' wurde nicht gefunden)!")
+    set Vorlage_Import_OK to FALSE
+    exit
+endif
+
+' ---------------------------------------------------------------------------------
+' Importfelder den Datenfeldern zuordnen
+' ---------------------------------------------------------------------------------
+
+' Datum
+if ( Spalte_015 = "" )
+    ' Buchungsdatum verwenden
+    set Vorlage_Datum to TextToDate(Spalte_008)
+else
+    ' Wertstellungdatum verwenden
+    set Vorlage_Datum to TextToDate(Spalte_015)
+endif
+
+' Text
+if ( Spalte_012 <> "")
+    set Vorlage_Text to Spalte_012
+else
+    set Vorlage_Text to Spalte_007
+endif
+
+' Betrag (Vorzeichen umwandeln)
+set Vorlage_Betrag to FTextToNumber(Spalte_003) * vz
+
+
+' Notizen
+set Vorlage_Notizen to Spalte_004
+
+' Referenz
+set Vorlage_Referenz to Spalte_007
+
+' Nummernkreis
+set Vorlage_Nummernkreis to "Standard"
+
+' ---------------------------------------------------------------------------------
+' Optional: Belegvervollständigung
+' ---------------------------------------------------------------------------------
+
+' Debitoren-/Kreditorenkonto bei gefundenem OP zuweisen
+set Vorlage_Konto to GetKontoDebitor(Vorlage_Text, Vorlage_Betrag)
+set Vorlage_Konto to IfThen(Vorlage_Konto = "", GetKontoKreditor(Vorlage_Text, Vorlage_Betrag), Vorlage_Konto)
