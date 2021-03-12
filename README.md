@@ -2,7 +2,7 @@
 
 ## Einleitung
 
-Dieb Buchhaltungs-Software "Monkey Office" bietet einen Import von Bankauszügen<sup id="a1">[1](#f1)</sup> an. Aus diesen lassen sich Buchungen erzeugen; so spart man sich die fehleranfällige Arbeit des manuellen Übetragens der Buchungen. 
+Die Buchhaltungs-Software "Monkey Office" bietet einen Import von Bankauszügen<sup id="a1">[1](#f1)</sup> an. Aus diesen lassen sich Buchungen erzeugen; so spart man sich die fehleranfällige Arbeit des manuellen Übetragens der Buchungen. 
 
 Anders als bei den Wettbewerber, bietet Monkey Office keine direkte Anbindung des Bankkontos an das Programm, sondern die Kontobewegungen müssen zunächst von der Bank oder aus einen Online-Bankingprogramm heraus exportiert werden. Üblicherweise kommt hier ein CSV-Format zum Einsatz. 
 
