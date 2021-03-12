@@ -4,13 +4,13 @@
 
 Die Buchhaltungs-Software "Monkey Office" bietet einen Import von Bankauszügen<sup id="a1">[1](#f1)</sup> an. Aus diesen lassen sich Buchungen erzeugen; so spart man sich die fehleranfällige Arbeit des manuellen Übetragens der Buchungen. 
 
-Anders als bei den Wettbewerber, bietet Monkey Office keine direkte Anbindung des Bankkontos an das Programm, sondern die Kontobewegungen müssen zunächst von der Bank oder aus einen Online-Bankingprogramm heraus exportiert werden. Üblicherweise kommt hier ein CSV-Format zum Einsatz. 
+Anders als bei den Wettbewerbern, bietet Monkey Office keine direkte Anbindung des Bankkontos an das Programm, sondern die Kontobewegungen müssen zunächst von der Bank oder aus einen Online-Bankingprogramm heraus exportiert werden. Üblicherweise kommt hier ein CSV-Format zum Einsatz. 
 
 Obwohl es ein [standardisiertes Format](https://de.wikipedia.org/wiki/MT940) dafür gibt, wird dies nicht von allen Banken angeboten. Die Banken erfinden lieber das Rad neu und tragen so zur Formatvielfalt bei. 
 
 ## Importdefinitionen 
 
-Um diese Vielzahl an Formaten zuverlässig in Monkey Office importieren zu können, bietet Monkey Office eine Art Dolmetcher an, der von dem jeweiligen Bank-eigenen Format in das Programm-eigene Format übersetzt. Bei Monkey Office heißt das _Importdefinitionen_. 
+Um diese Vielzahl an Formaten zuverlässig in Monkey Office importieren zu können, bietet Monkey Office eine Art Dolmetscher an, der von dem jeweiligen Bank-eigenen Format in das Programm-eigene Format übersetzt. Bei Monkey Office heißt das _Importdefinitionen_. 
 
 Dahinter verbergen sich gewöhnliche Textdateien, die in jedem Texteditor geöffnet werden können. Mittels des darin befindlichen Skripts (eine Art kleines Programm), lassen sich die CSV-Dateien anhand zu definierender Trennzeichen in Spalten aufteilen.
 
