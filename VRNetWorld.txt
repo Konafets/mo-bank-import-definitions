@@ -1,6 +1,5 @@
 ' ---------------------------------------------------------------------------------
 ' Importdefinition für VrNetWorld CSV Export
-' Auslieferung: Version 14.2.0
 '    Importeinstellungen:
 '    Quelle                     : Textdatei (*)
 '    Trennzeichen für Felder    : Semikolon
@@ -64,15 +63,9 @@ endif
 ' ---------------------------------------------------------------------------------
 
 ' Debitoren-/Kreditorenkonto bei gefundenem OP zuweisen
-set Vorlage_Konto to GetKontoDebitor(Vorlage_Text, Vorlage_Betrag)
-set Vorlage_Konto to IfThen(Vorlage_Konto = "", GetKontoKreditor(Vorlage_Text, Vorlage_Betrag), Vorlage_Konto)
+'set Vorlage_Konto to GetKontoDebitor(Vorlage_Text, Vorlage_Betrag)
+'set Vorlage_Konto to IfThen(Vorlage_Konto = "", GetKontoKreditor(Vorlage_Text, Vorlage_Betrag), Vorlage_Konto)
 
-' Set Referenz
-set Vorlage_Konto to IfThen(PatternCount(Vorlage_Referenz, "Mercedes") > 0, "70781", Vorlage_Konto)
-set Vorlage_Konto to IfThen(PatternCount(Vorlage_Referenz, "Vermieter") > 0, "4210", Vorlage_Konto)
-set Vorlage_Konto to IfThen(PatternCount(Vorlage_Referenz, "ABSCHLUSS") > 0, "4970", Vorlage_Konto)
-
-
-'Set Text
-set Vorlage_Konto to IfThen(PatternCount(Vorlage_Text, "Gehalt") > 0, "1740", Vorlage_Konto)
-Set Vorlage_Nummernkreis to "Giro"
+' Set Text
+'set Vorlage_Konto to IfThen(PatternCount(Vorlage_Text, "Gehalt") > 0, "1740", Vorlage_Konto)
+'set Vorlage_Nummernkreis to "Giro"
