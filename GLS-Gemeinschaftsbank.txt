@@ -1,0 +1,105 @@
+' ---------------------------------------------------------------------------------
+' Importdefinition für GLS-Bank-Umsatzdateien
+'    Importeinstellungen:
+'    Quelle                     : Textdatei (*)
+'    Trennzeichen für Felder    : Semikolon
+'    Trennzeichen für Datensätze: CR
+'    Zeichensatz für            : IsoLatin1 (Windows)
+'    Text in Anführungszeichen  : Doppelt "
+' ---------------------------------------------------------------------------------
+
+' Aktionen nur im ersten Durchlauf ausführen: Variablen deklarieren
+if ( NOT HasVariable("valid") )
+    dim valid as boolean
+    dim vz as number
+    dim zeile as number
+    dim buchungsdatum as text
+    dim valuta as text
+    dim empfaenger as text
+    dim sender as text
+    dim buchungstext as text
+    dim sollHaben as text
+    dim betrag as number
+    dim iban as text
+endif
+
+' Die Umsatzdaten beginnen erst ab Zeile 2, die Zeile davor verwerfen
+set zeile to zeile + 1
+if ( zeile < 14 )
+    set Vorlage_Zeile_OK to FALSE
+    exit
+endif
+
+' Zeilen ohne Valuta und ohne Sender werden nicht
+
+if (Spalte_002 = "" AND Spalte_004 = "")
+    set Vorlage_Zeile_OK to FALSE
+    exit
+endif
+
+' Abbrechen, wenn nicht mindestens 13 Felder in Importdatei vorhanden sind
+if ( NOT HasVariable("Spalte_013") )
+    beep
+    msgBox("Fehler beim Lesen der GLS-Exportdatei (Ungültiges Datensatzformat)!")
+    set Vorlage_Import_OK to FALSE
+    exit
+endif
+
+' ---------------------------------------------------------------------------------
+' Die Spalten den Variablen zuordnen
+' ---------------------------------------------------------------------------------
+
+set buchungsdatum to Spalte_001
+set valuta to Spalte_002
+set empfaenger to Spalte_003
+set sender to Spalte_004
+set buchungstext to Spalte_009
+set sollHaben to Spalte_013
+set betrag to FTextToNumber(Spalte_012)
+set iban to Spalte_006
+
+' Vorzeichen des Buchungsbetrags ermitteln
+if ( sollHaben = "S" )
+    set vz to -1
+    set valid to TRUE
+else
+    set vz to 1
+    set valid to TRUE
+endif
+
+if ( NOT valid )
+    beep
+    msgBox("Fehler beim Lesen der GLS-Datei (Das Bankkonto '" + BANKKONTO_BEZEICHNUNG + "' wurde nicht gefunden)!")
+    set Vorlage_Import_OK to FALSE
+    exit
+endif
+
+' ---------------------------------------------------------------------------------
+' Importfelder den Datenfeldern zuordnen
+' ---------------------------------------------------------------------------------
+
+' Datum
+set Vorlage_Datum to TextToDate(valuta)
+
+' Text
+set Vorlage_Text to buchungstext
+
+' Betrag (Vorzeichen umwandeln)
+set Vorlage_Betrag to betrag * vz
+
+' Notizen
+set Vorlage_Notizen to sender
+
+' Referenz
+set Vorlage_Referenz to iban
+
+' Nummernkreis
+set Vorlage_Nummernkreis to "Standard"
+
+' ---------------------------------------------------------------------------------
+' Optional: Belegvervollständigung
+' ---------------------------------------------------------------------------------
+
+' Debitoren-/Kreditorenkonto bei gefundenem OP zuweisen
+set Vorlage_Konto to GetKontoDebitor(Vorlage_Text, Vorlage_Betrag)
+set Vorlage_Konto to IfThen(Vorlage_Konto = "", GetKontoKreditor(Vorlage_Text, Vorlage_Betrag), Vorlage_Konto)
