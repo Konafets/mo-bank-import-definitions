@@ -1,0 +1,85 @@
+' ---------------------------------------------------------------------------------
+'    Importdefinition für DKB-Umsatzdateien
+'    Importeinstellungen:
+'    Quelle                     : Textdatei (*)
+'    Trennzeichen für Felder    : Semikolon
+'    Trennzeichen für Datensätze: LF
+'    Zeichensatz für            : UTF8
+'    Text in Anführungszeichen  : "
+' ---------------------------------------------------------------------------------
+
+' Aktionen nur im ersten Durchlauf ausführen: Variablen deklarieren
+if ( NOT HasVariable("zeile") )
+    dim zeile as number
+    dim buchungsdatum as text
+    dim valuta as text
+    dim empfaenger as text
+    dim sender as text
+    dim buchungstext as text
+    dim verwendungszweck as text
+    dim betrag as number
+    dim iban as text
+    dim blz as text
+    dim kundenref as text
+endif
+
+' Die Umsatzdaten beginnen erst ab Zeile 6, die Zeile davor verwerfen
+set zeile to zeile + 1
+if ( zeile < 8 )
+    set Vorlage_Zeile_OK to FALSE
+    exit
+endif
+
+' Abbrechen, wenn nicht mindestens 11 Felder in Importdatei vorhanden sind
+if ( NOT HasVariable("Spalte_011") )
+    beep
+    msgBox("Fehler beim Lesen der DKB-Exportatei (Ungültiges Datensatzformat)!")
+    set Vorlage_Import_OK to FALSE
+    exit
+endif
+
+' ---------------------------------------------------------------------------------
+' Die Spalten den Variablen zuordnen
+' ---------------------------------------------------------------------------------
+set buchungsdatum to Spalte_001
+set valuta to Spalte_002
+set buchungstext to Spalte_005
+set empfaenger to Spalte_004
+set verwendungszweck to Spalte_005
+set iban to Spalte_006
+set blz to Spalte_007
+set betrag to FTextToNumber(Spalte_008)
+set kundenref to Spalte_011
+
+
+' Datum (Wertstellungdatum verwenden)
+set Vorlage_Datum to TextToDate(valuta)
+
+' Text
+if ( buchungstext <> "" )
+    set Vorlage_Text to buchungstext
+endif
+
+' Text
+if ( kundenref <> "" )
+    set Vorlage_Referenz to kundenref
+endif
+
+if ( empfaenger <> "" )
+    set Vorlage_Notizen to empfaenger + " " + verwendungszweck
+endif
+
+' Betrag
+set Vorlage_Betrag to betrag
+
+' Nummernkreis
+set Vorlage_Nummernkreis to "Standard"
+
+' ---------------------------------------------------------------------------------
+' Optional: Belegvervollständigung
+' ---------------------------------------------------------------------------------
+
+' Debitoren-/Kreditorenkonto bei gefundenem OP zuweisen
+set Vorlage_Konto to GetKontoDebitor(Vorlage_Text, Vorlage_Betrag)
+set Vorlage_Konto to IfThen(Vorlage_Konto = "", GetKontoKreditor(Vorlage_Text, Vorlage_Betrag), Vorlage_Konto)
+
