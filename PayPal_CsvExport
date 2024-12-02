@@ -1,0 +1,75 @@
+' ---------------------------------------------------------------------------------
+' Importdefinition für PayPal-Umsatzdateien
+'    Importeinstellungen:
+'    Quelle                     : Textdatei (*) alle Aktivitäten (kommagetrennt)
+'    Trennzeichen für Felder    : Komma
+'    Trennzeichen für Datensätze: LF
+'    Zeichensatz für            : UTF8
+'    Text in Anführungszeichen  : Doppelt"
+' ---------------------------------------------------------------------------------
+
+' Aktionen nur im ersten Durchlauf ausführen: Variablen deklarieren
+if ( NOT HasVariable("zeile") )
+    dim zeile as number
+endif
+
+' Die Umsatzdaten beginnen erst ab Zeile 2, alle Zeilen davor verwerfen
+set zeile to zeile + 1
+if ( zeile < 2 )
+    set Vorlage_Zeile_OK to FALSE
+    exit
+endif
+
+' Abbrechen, wenn nicht mindestens 18 Felder in Importdatei vorhanden sind
+if ( NOT HasVariable("Spalte_030") )
+    beep
+    msgBox("Fehler beim Lesen der Paypal-Exportatei (Ungültiges Datensatzformat)!")
+    set Vorlage_Import_OK to FALSE
+    exit
+endif
+
+' ---------------------------------------------------------------------------------
+' Importfelder den Datenfeldern zuordnen
+' ---------------------------------------------------------------------------------
+
+' Datum (Wertstellungdatum verwenden)
+set Vorlage_Datum to TextToDate(Spalte_001)
+
+' BelegNr.
+if ( Spalte_005 <> "" )
+    'set Vorlage_BelegNr to Spalte_013
+endif
+
+' Text
+if ( Spalte_005 <> "" )
+    set Vorlage_Text to  Spalte_005 + " " + Spalte_015 + " " + Spalte_004
+endif
+
+' Betrag
+set Vorlage_Betrag to FTextToNumber(Spalte_008)
+
+' Notizen
+set Vorlage_Notizen to Spalte_004 + " S:" + Spalte_011 + " E:" + Spalte_012 + " T:" + Spalte_013 + " zT:" + Spalte_022
+
+' Referenz
+set Vorlage_Referenz to Spalte_013
+
+' ---------------------------------------------------------------------------------
+' Optional: Belegvervollständigung
+' ---------------------------------------------------------------------------------
+
+' Debitoren-/Kreditorenkonto bei gefundenem OP zuweisen
+set Vorlage_Konto to GetKontoDebitor(Vorlage_Text, Vorlage_Betrag)
+set Vorlage_Konto to IfThen(Vorlage_Konto = "", GetKontoKreditor(Vorlage_Text, Vorlage_Betrag), Vorlage_Konto)
+
+
+' Beispiel alle Buchungszeilen in denen HANNOVERSCHE vorkommt auf, das Konto 2220 automatisch vorkontieren
+' Zum aktivieren der folgenden Zeilen, bitte das Hockomma davor entfernen.
+
+'if PatternCount(Vorlage_Text,"Web Accept")>0
+'set Vorlage_Konto to "2220"
+'endif
+
+' ---------------------------------------------------------------------------------
+' Ende PayPal
+' ---------------------------------------------------------------------------------
